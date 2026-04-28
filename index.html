@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Novelty Index — Kallol Chakrabarti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg-elevated: #12121a;
+    --bg-card: #16161f;
+    --bg-card-hover: #1c1c28;
+    --fg: #e8e6e3;
+    --fg-muted: #8a8694;
+    --fg-dim: #5a5666;
+    --accent: #e8a838;
+    --accent-glow: rgba(232,168,56,0.15);
+    --accent-secondary: #38e8a8;
+    --accent-tertiary: #e84838;
+    --border: #2a2a3a;
+    --border-subtle: #1e1e2e;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* Ambient background */
+  .ambient {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .ambient-orb {
+    position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.07;
+    animation: orbFloat 20s ease-in-out infinite alternate;
+  }
+  .ambient-orb:nth-child(1) { width:600px; height:600px; background: var(--accent); top:-10%; left:-10%; }
+  .ambient-orb:nth-child(2) { width:500px; height:500px; background: var(--accent-secondary); bottom:-15%; right:-10%; animation-delay:-7s; }
+  .ambient-orb:nth-child(3) { width:400px; height:400px; background: #a838e8; top:40%; left:50%; animation-delay:-14s; }
+  @keyframes orbFloat {
+    0% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(60px,-40px) scale(1.15); }
+    100% { transform: translate(-30px,50px) scale(0.95); }
+  }
+  .page-wrapper { position: relative; z-index: 1; }
+
+  /* Header */
+  header {
+    padding: 60px 24px 40px;
+    max-width: 1400px; margin: 0 auto;
+    text-align: center;
+  }
+  .header-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-glow); border: 1px solid rgba(232,168,56,0.25);
+    padding: 6px 18px; border-radius: 999px; font-size: 12px;
+    color: var(--accent); font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; margin-bottom: 24px;
+  }
+  .header-badge i { font-size: 10px; }
+  header h1 {
+    font-size: clamp(32px, 5vw, 56px); font-weight: 700;
+    line-height: 1.1; margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--fg) 0%, var(--accent) 60%, var(--accent-secondary) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  header p {
+    color: var(--fg-muted); font-size: 16px; max-width: 680px;
+    margin: 0 auto 8px; line-height: 1.7;
+  }
+  .header-meta {
+    display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;
+    margin-top: 20px; font-size: 13px; color: var(--fg-dim);
+  }
+  .header-meta span { display: flex; align-items: center; gap: 6px; }
+  .header-meta i { color: var(--accent); font-size: 12px; }
+
+  /* Stats Strip */
+  .stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; max-width: 1400px; margin: 0 auto 40px; padding: 0 24px;
+  }
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius); padding: 20px 24px;
+    text-align: center; transition: var(--transition);
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0; transition: var(--transition);
+  }
+  .stat-card:hover { border-color: var(--border); transform: translateY(-2px); }
+  .stat-card:hover::before { opacity: 1; }
+  .stat-number {
+    font-size: 36px; font-weight: 700; color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-number.green { color: var(--accent-secondary); }
+  .stat-number.red { color: var(--accent-tertiary); }
+  .stat-label { font-size: 12px; color: var(--fg-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Controls */
+  .controls {
+    max-width: 1400px; margin: 0 auto 32px; padding: 0 24px;
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  }
+  .search-box {
+    flex: 1; min-width: 260px; position: relative;
+  }
+  .search-box i {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    color: var(--fg-dim); font-size: 14px;
+  }
+  .search-box input {
+    width: 100%; padding: 12px 16px 12px 44px;
+    background: var(--bg-card); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm); color: var(--fg);
+    font-family: inherit; font-size: 14px; outline: none;
+    transition: var(--transition);
+  }
+  .search-box input::placeholder { color: var(--fg-dim); }
+  .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .filter-chips {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .chip {
+    padding: 8px 16px; border-radius: 999px; font-size: 12px;
+    font-weight: 500; cursor: pointer; border: 1px solid var(--border-subtle);
+    background: var(--bg-card); color: var(--fg-muted);
+    transition: var(--transition); white-space: nowrap;
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--border); color: var(--fg); }
+  .chip.active {
+    background: var(--accent); color: var(--bg); border-color: var(--accent);
+    font-weight: 600;
+  }
+  .chip .chip-count {
+    display: inline-block; margin-left: 4px; opacity: 0.6;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  }
+  .results-info {
+    max-width: 1400px; margin: 0 auto 20px; padding: 0 24px;
+    font-size: 13px; color: var(--fg-dim);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .sort-btn {
+    background: var(--bg-card); border: 1px solid var(--border-subtle);
+    color: var(--fg-muted); padding: 6px 14px; border-radius: var(--radius-sm);
+    font-family: inherit; font-size: 12px; cursor: pointer;
+    transition: var(--transition);
+  }
+  .sort-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Article Grid */
+  .articles-container {
+    max-width: 1400px; margin: 0 auto; padding: 0 24px 80px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .article-card {
+    background: var(--bg-card); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius); padding: 24px 28px;
+    transition: var(--transition); position: relative;
+    display: grid; grid-template-columns: auto 1fr auto;
+    gap: 20px; align-items: start;
+    animation: cardIn 0.4s ease both;
+  }
+  .article-card:hover {
+    border-color: var(--border); background: var(--bg-card-hover);
+    transform: translateX(4px);
+  }
+  @keyframes cardIn {
+    from { opacity:0; transform: translateY(12px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+  .article-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    color: var(--fg-dim); min-width: 36px; padding-top: 2px;
+    font-weight: 500;
+  }
+  .article-body { min-width: 0; }
+  .article-title {
+    font-size: 16px; font-weight: 600; line-height: 1.45;
+    color: var(--fg); margin-bottom: 8px;
+  }
+  .article-title a {
+    color: inherit; text-decoration: none;
+    transition: var(--transition);
+  }
+  .article-title a:hover { color: var(--accent); }
+  .article-summary {
+    font-size: 13.5px; color: var(--fg-muted); line-height: 1.65;
+    margin-bottom: 12px;
+  }
+  .article-meta {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .tag {
+    font-size: 11px; padding: 3px 10px; border-radius: 999px;
+    font-weight: 500; letter-spacing: 0.3px;
+  }
+  .tag-category {
+    background: rgba(232,168,56,0.1); color: var(--accent);
+    border: 1px solid rgba(232,168,56,0.2);
+  }
+  .tag-platform {
+    background: rgba(56,232,168,0.08); color: var(--accent-secondary);
+    border: 1px solid rgba(56,232,168,0.15);
+  }
+  .tag-score {
+    font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  }
+  .tag-score.high {
+    background: rgba(56,232,168,0.12); color: var(--accent-secondary);
+    border: 1px solid rgba(56,232,168,0.25);
+  }
+  .tag-score.perfect {
+    background: linear-gradient(135deg, rgba(232,168,56,0.15), rgba(56,232,168,0.15));
+    color: var(--accent); border: 1px solid rgba(232,168,56,0.3);
+  }
+  .tag-score.unknown {
+    background: rgba(138,134,148,0.1); color: var(--fg-dim);
+    border: 1px solid rgba(138,134,148,0.15);
+  }
+  .doi-link {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--fg-dim); text-decoration: none;
+    transition: var(--transition); word-break: break-all;
+  }
+  .doi-link:hover { color: var(--accent); }
+  .article-right {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+    min-width: 100px;
+  }
+
+  /* World-first badge */
+  .world-first {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: linear-gradient(135deg, rgba(232,168,56,0.2), rgba(232,72,56,0.15));
+    border: 1px solid rgba(232,168,56,0.35);
+    color: var(--accent); font-size: 10px; font-weight: 700;
+    padding: 4px 10px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+  @keyframes pulseGlow {
+    0%,100% { box-shadow: 0 0 8px rgba(232,168,56,0.1); }
+    50% { box-shadow: 0 0 16px rgba(232,168,56,0.25); }
+  }
+  .source-badge {
+    font-size: 10px; color: var(--fg-dim); padding: 3px 8px;
+    border: 1px solid var(--border-subtle); border-radius: 4px;
+    background: var(--bg-elevated);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 80px 24px; color: var(--fg-dim);
+  }
+  .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .empty-state p { font-size: 15px; }
+
+  /* Footer */
+  footer {
+    text-align: center; padding: 40px 24px 60px;
+    border-top: 1px solid var(--border-subtle);
+    max-width: 1400px; margin: 0 auto;
+  }
+  footer p { font-size: 12px; color: var(--fg-dim); line-height: 1.8; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Back to top */
+  .back-to-top {
+    position: fixed; bottom: 32px; right: 32px;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--accent); color: var(--bg);
+    border: none; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: translateY(20px);
+    transition: var(--transition); z-index: 100;
+    box-shadow: 0 4px 20px rgba(232,168,56,0.3);
+  }
+  .back-to-top.visible { opacity: 1; transform: translateY(0); }
+  .back-to-top:hover { transform: translateY(-2px) scale(1.05); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--fg-dim); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    header { padding: 40px 16px 28px; }
+    .stats-strip { padding: 0 16px; gap: 10px; }
+    .stat-card { padding: 14px 16px; }
+    .stat-number { font-size: 28px; }
+    .controls { padding: 0 16px; }
+    .articles-container { padding: 0 16px 60px; }
+    .article-card {
+      grid-template-columns: 1fr; gap: 12px; padding: 18px 20px;
+    }
+    .article-num { display: none; }
+    .article-right { flex-direction: row; align-items: center; min-width: auto; }
+    .results-info { padding: 0 16px; flex-direction: column; gap: 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient">
+  <div class="ambient-orb"></div>
+  <div class="ambient-orb"></div>
+  <div class="ambient-orb"></div>
+</div>
+
+<div class="page-wrapper">
+  <header>
+    <div class="header-badge"><i class="fas fa-atom"></i> First-of-Its-Kind Research Compendium</div>
+    <h1>Master Novelty Index</h1>
+    <p>A unified catalog of 189 unique first-of-its-kind research articles spanning governance, AI ethics, geopolitical strategy, rhetoric science, civilizational philosophy, and beyond.</p>
+    <div class="header-meta">
+      <span><i class="fas fa-user"></i> Kallol Chakrabarti</span>
+      <span><i class="fas fa-id-badge"></i> ORCID: 0009-0007-4971-8936</span>
+      <span><i class="fas fa-calendar"></i> Compiled 2025</span>
+      <span><i class="fas fa-trophy"></i> Guinness World Record Submission</span>
+    </div>
+  </header>
+
+  <section class="stats-strip" aria-label="Summary statistics">
+    <div class="stat-card">
+      <div class="stat-number" id="stat-total">189</div>
+      <div class="stat-label">Total Unique Articles</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number green">25</div>
+      <div class="stat-label">DeSci Verified (90%+)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number red">4</div>
+      <div class="stat-label">True World-Firsts (100%)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">7</div>
+      <div class="stat-label">Platforms Published</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number green">12</div>
+      <div class="stat-label">Research Categories</div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchInput" placeholder="Search articles by title, summary, category, or DOI..." aria-label="Search articles">
+    </div>
+    <div class="filter-chips" id="filterChips" role="group" aria-label="Category filters"></div>
+  </div>
+
+  <div class="results-info">
+    <span id="resultsCount">Showing 189 articles</span>
+    <button class="sort-btn" id="sortBtn" aria-label="Toggle sort order">
+      <i class="fas fa-arrow-down-short-wide"></i> Sorted by Number
+    </button>
+  </div>
+
+  <main class="articles-container" id="articlesContainer" aria-label="Articles list"></main>
+
+  <footer>
+    <p>
+      Kallol Chakrabarti &middot; Independent Researcher, Lucknow, India<br>
+      ORCID: <a href="https://orcid.org/0009-0007-4971-8936" target="_blank" rel="noopener">0009-0007-4971-8936</a><br>
+      Platforms: Zenodo &middot; DeSci Nodes &middot; SSRN &middot; ResearchHub &middot; OSF &middot; HCommons &middot; Figshare<br>
+      189 Unique First-of-its-Kind Research Works &middot; 2025
+    </p>
+  </footer>
+</div>
+
+<button class="back-to-top" id="backToTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
+
+<script>
+// === COMPLETE ARTICLE DATABASE ===
+// Merged from both PDFs, deduplicated, with novelty summaries
+const articles = [
+  // ─── GOVERNANCE & POLICY ───
+  {id:1, title:"EchoShield Nexus: The Next Evolution in Uttar Pradesh's Security Revolution – Building on the Foundation of India's Most Remarkable Law & Order Transformation", doi:"10.5281/ZENODO.17989257", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Proposes a next-generation security architecture for UP by layering digital monitoring onto the state's existing law-and-order turnaround, creating a scalable governance-to-security feedback loop."},
+  {id:2, title:"The Ready Reckoner Series on Politicians: Defining a New Reference Format for Democracy", doi:"10.5281/ZENODO.17943532", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Introduces a standardized, quick-reference format for evaluating political figures — a first-of-its-kind democratic accountability tool modeled on operational ready-reckoner manuals."},
+  {id:3, title:"The Kallol Movement: Reconnecting Muslim Rajputs with Their Sanatani Heritage Through Cultural Renaissance and Genealogical Research", doi:"10.5281/ZENODO.17919431", platform:"Zenodo", score:null, cat:"Cultural Heritage", src:"PDF-1", summary:"First scholarly framework using genealogical mapping and cultural renaissance methodology to reconnect Muslim Rajput communities with pre-conversion Sanatani roots."},
+  {id:4, title:"Bharat-Ekta-Mission: Voluntary Caste Transcendence Economic Integration Anti-Coercion Framework 2025 – Policy Ready Reckoner for Government Implementation", doi:"10.5281/ZENODO.17824362", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"A policy-ready framework for voluntary caste transcendence through economic integration — novel in making caste dissolution incentivized rather than coercive."},
+  {id:5, title:"Dharma Nudges: A Culturally Grounded Behavioral Intervention Framework for Misinformation Prevention in Indian Digital Ecosystems", doi:"10.5281/ZENODO.17667820", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Coins 'Dharma Nudges' as a behavioral science concept — using dharmic framing (rather than Western nudge theory) to counter misinformation in Indian digital spaces."},
+  {id:6, title:"Algorithmic Governance: How Digital Keywords Shape Policy Communication and Public Trust in India and Beyond", doi:"10.5281/ZENODO.17548163", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"First analysis of how specific digital keywords function as governance instruments that shape public trust, treating algorithmic vocabulary as a policy variable."},
+  {id:7, title:"AI-Powered Multilingual FIR System: Revolutionizing Law Enforcement Accessibility", doi:"10.5281/ZENODO.17483974", platform:"Zenodo", score:null, cat:"Law & Justice", src:"PDF-1", summary:"Proposes India's first AI-driven multilingual FIR filing system, eliminating language barriers in criminal justice reporting across 22+ scheduled languages."},
+  {id:8, title:"Strategic Tolerance: Understanding Narendra Modi's Dual Approach to Criticism and Confrontation", doi:"10.5281/ZENODO.17404577", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Coins 'Strategic Tolerance' as a new political science concept to analyze the calibrated tolerance-versus-confrontation duality in Modi's leadership communication."},
+  {id:9, title:"Bharat Vikas Mandal: Integrating Vedic Economic Principles with Digital Financial Inclusion", doi:"10.5281/ZENODO.17378555", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"First framework to operationalize Vedic economic principles (from Arthashastra and Dharmashastra) as design inputs for modern digital financial inclusion systems."},
+  {id:10, title:"The Karma Index (KI): A Novel Model for Measuring Ethical Causality and Integrating Ancient Wisdom in Modern Governance", doi:"10.5281/ZENODO.17374186", platform:"Zenodo", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"Proposes the 'Karma Index' — a first-of-its-kind governance metric that quantifies ethical causality by mapping action-consequence chains from Indian philosophical traditions onto policy outcomes."},
+  {id:11, title:"Sanatana Darshana: A Ready Reckoner for Hindu Dharma – An Evidence-Based Guide for Atheists, Agnostics, and Ex-Muslims", doi:"10.5281/ZENODO.17334809", platform:"Zenodo", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"First evidence-based ready-reckoner specifically designed for skeptics and ex-Muslim audiences to objectively evaluate Sanatana Dharma's philosophical claims."},
+  {id:12, title:"Quantum Ethical Uncertainty and Dharma-Driven AI", doi:"10.5281/ZENODO.17259701", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"Merges quantum mechanical uncertainty principles with Dharmic ethics to propose a non-Western foundation for AI moral reasoning — a novel interdisciplinary synthesis."},
+  {id:13, title:"Legal Literacy Framework for Indian College Students: A Comprehensive Study of India's New Criminal Laws (2024)", doi:"10.5281/ZENODO.17213599", platform:"Zenodo", score:null, cat:"Law & Justice", src:"PDF-1", summary:"First comprehensive legal literacy framework calibrated specifically for India's 2024 criminal law reforms (BNS, BNSS, BSA), targeting college students as a demographic."},
+  {id:14, title:"Unlocking English Mastery: A Linguistic Physics Framework for Conscious Competence in Second Language Acquisition", doi:"10.5281/ZENODO.17212357", platform:"Zenodo", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"Introduces 'Linguistic Physics' — applying physics-inspired force, mass, and velocity analogies to second-language acquisition, a novel pedagogical paradigm."},
+  {id:15, title:"Roots & Wings: A Ready Reckoner for Young Minds – Integrating Ancient Indian Wisdom with Modern Values for Holistic Child Development", doi:"10.5281/ZENODO.17170006", platform:"Zenodo", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"First child-development ready-reckoner that systematically pairs ancient Indian wisdom texts with modern developmental psychology benchmarks."},
+  {id:16, title:"Alternative Learning Pathways and Democratic Policy Impact: A Case Study in YouTube-Based Education and Transparent Research Methodology – Docu Helix / Helix Originator", doi:"10.5281/ZENODO.17139551", platform:"Zenodo", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"Pioneering case study formalizing YouTube as a legitimate democratic education pathway, coining 'Docu Helix' as a new research methodology genre."},
+  {id:17, title:"Revitalizing Sanskrit as a Catalyst for Cultural, Economic, and Scientific Advancement: A Comprehensive National Integration Strategy", doi:"10.5281/ZENODO.17111958", platform:"Zenodo", score:null, cat:"Cultural Heritage", src:"PDF-1", summary:"First national integration strategy that positions Sanskrit not merely as a heritage language but as an economic and scientific catalyst for modern India."},
+  {id:18, title:"Safeguarding India's Democracy: The Evolution and Fortification of Electoral Integrity", doi:"10.5281/ZENODO.17084877", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Comprehensive evolutionary analysis of India's electoral integrity mechanisms with a forward-looking fortification framework unique in its systemic scope."},
+  {id:19, title:"Systematic Analysis of Misconceptions in Indian Constitutional, Dharmic, and Historical Narratives: A Four-Tier Evidence Framework", doi:"10.17613/SF3G9-8XX46", platform:"HCommons", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Introduces a novel Four-Tier Evidence Framework for systematically classifying and debunking misconceptions across constitutional, dharmic, and historical domains."},
+  {id:20, title:"Helix Originator: Decolonizing Knowledge through Decentralized Academia", doi:"10.5281/ZENODO.17002411", platform:"Zenodo", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"Coining 'Helix Originator' as a new knowledge-production identity — a framework for decolonizing academia by bypassing institutional gatekeepers entirely."},
+  {id:21, title:"Debunking Civilizational Myths: A Comprehensive Ready Reckoner on India's Constitutional, Dharmic, and Historical Narratives", doi:"10.5281/ZENODO.16977623", platform:"Zenodo", score:"Unknown (High)", cat:"Governance & Policy", src:"PDF-1", summary:"First ready-reckoner format applied to civilizational debunking — a structured, quick-reference tool for countering narrative distortions about Indian civilization."},
+  {id:22, title:"The Helix Kallol Doctrine", doi:"10.5281/ZENODO.16951093", platform:"Zenodo", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"Articulates a named doctrine ('Helix Kallol') combining spiral knowledge evolution with independent research ethics — a new epistemological framework for non-institutional scholars."},
+  {id:23, title:"From Criticism to Credibility: The Yogi Model of Transformative Leadership in 21st Century Democracy", doi:"10.5281/ZENODO.16939032", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"First academic formalization of the 'Yogi Model' of leadership — a novel framework mapping Yogi Adityanath's transformation from polarizing figure to governance benchmark."},
+  {id:24, title:"The Demographic Transition and Resource Planning Index (DTRPI): A Comprehensive Framework for Managing India's Complex Demographic Transitions", doi:"10.5281/ZENODO.16909500", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Proposes the DTRPI — a first-of-its-kind composite index that correlates demographic transition stages with resource allocation needs at the district level in India."},
+  {id:25, title:"Safeguarding Democratic Truth: A Comprehensive Ready Reckoner for Countering Electoral Misinformation", doi:"10.62891/EC31F4FB", platform:"DeSci", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"First ready-reckoner specifically designed as a field manual for countering electoral misinformation, structured for rapid deployment by election workers."},
+  {id:26, title:"The World's First Dharma-Karma Ready Reckoner: A Revolutionary Analytical Framework for Transforming Governance Through Ancient Wisdom", doi:"10.5281/ZENODO.16871078", platform:"Zenodo", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"Claims and delivers the world's first ready-reckoner that operationalizes the Dharma-Karma conceptual pair as a governance decision-making framework."},
+  {id:27, title:"Comprehensive Policy Framework for Assam's Transformational Governance: A Strategic Blueprint for Sustainable Development, Regional Integration, and Democratic Strengthening", doi:"10.5281/ZENODO.16810091", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"First state-level governance blueprint that simultaneously addresses sustainable development, regional integration, and democratic deepening specifically for Assam's unique context."},
+  {id:28, title:"Hindu Community Resilience and Empowerment Program (HCREP): An Integrated Framework for Economic Security and Community Protection in Uttar Pradesh", doi:"10.5281/ZENODO.16755432", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Novel in being the first structured resilience-and-empowerment framework specifically targeting Hindu community economic security within UP's sociopolitical landscape."},
+  {id:29, title:"Sanatana Samyata: The Complete Dharma Defense Manual – Comprehensive Responses to Misconceptions About Hindu Dharma", doi:"10.5281/ZENODO.16714489", platform:"Zenodo", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"World's first comprehensive ready-reckoner for decolonizing knowledge systems — a structured defense manual against misconceptions about Sanatana Dharma."},
+  {id:30, title:"Technology-Enabled Equitable Housing Allocation System (TE-EHAS): A Comprehensive Policy Framework for Enhanced PMAY Implementation", doi:"10.5281/ZENODO.16673402", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"First technology-driven housing allocation framework that introduces algorithmic equity into India's PMAY scheme, addressing bias in existing beneficiary selection."},
+  {id:31, title:"Vedic Analytical Framework for Governance, Policing, and Education (VAFGPE): A World-First Policy Proposal for Ethical Statecraft", doi:"10.5281/ZENODO.16626076", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Claims world-first status in applying Vedic analytical methodology simultaneously across governance, policing, and education as a unified ethical statecraft framework."},
+  {id:32, title:"Assam's Transformational Governance: A Refined Policy Framework for Sustainable Reform and Strategic Innovation in India", doi:"10.5281/ZENODO.16595505", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Refines and extends the Assam governance blueprint with strategic innovation lenses, creating a two-stage policy architecture unique to the state."},
+  {id:33, title:"District-Level Analysis of Ayushman Bharat: Evaluating Health Justice and Universal Health Coverage Implementation in India", doi:"10.5281/ZENODO.16568316", platform:"Zenodo", score:null, cat:"Healthcare & Wellness", src:"PDF-1", summary:"First district-level granular analysis of Ayushman Bharat through a 'health justice' lens — reframing healthcare access as a justice metric rather than a service metric."},
+  {id:34, title:"Hydro-Politics and Equity: An Assessment of India's Jal Jeevan Mission", doi:"10.5281/ZENODO.16527240", platform:"Zenodo", score:null, cat:"Environment & Sustainability", src:"PDF-1", summary:"Coins a 'hydro-political equity' framework to assess JJM — first to evaluate India's water mission through the lens of political power distribution in water access."},
+  {id:35, title:"Fortifying Sovereignty: An Analysis of the Turnaround in Foreign Funding Regulation and Its Impact on National Security under the Leadership of Amit Shah (2019–Present)", doi:"10.5281/ZENODO.16487303", platform:"Zenodo", score:"91%", cat:"Geopolitics & Security", src:"PDF-1", summary:"First systematic analysis linking FCRA regulatory turnaround directly to national security outcomes, with a named leadership accountability framework for Amit Shah's tenure."},
+  {id:36, title:"Cultural Bias in Plagiarism Detection: Rethinking Authorship in the Digital Age", doi:"10.55277/RESEARCHHUB.2MJBVMAR", platform:"ResearchHub", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"Pioneering critique of plagiarism detection tools for cultural bias — first to argue that algorithmic authorship verification systematically disadvantages non-Western knowledge traditions."},
+  {id:37, title:"LandLens: A Transparent Visualization Platform for Public Land Encroachments in India – A Technology-Driven Approach to Legal Data Accessibility", doi:"10.5281/ZENODO.16434439", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Proposes 'LandLens' — India's first transparent, public-facing visualization platform for land encroachment data, making legal land records citizen-accessible."},
+  {id:38, title:"Bridging Educational Divides: A Framework for Quality Education in Remote and Tribal Areas of Assam Through SDG-Aligned Policy Innovation", doi:"10.5281/ZENODO.16419960", platform:"Zenodo", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"First SDG-aligned education framework specifically for Assam's remote and tribal areas, with contextual adaptations absent from generic national education policies."},
+  {id:39, title:"Remote Monitoring of the Swachh Bharat Mission Using Satellite Imagery and Machine Learning: A Technological Lens on Sanitation Progress in India", doi:"10.5281/ZENODO.16414167", platform:"Zenodo", score:null, cat:"Environment & Sustainability", src:"PDF-1", summary:"First to apply satellite imagery + ML to independently verify SBM sanitation outcomes — a novel third-party audit methodology for government cleanliness programs."},
+  {id:40, title:"UP Samvidhan Sabhas: Advancing Constitutional Literacy and Civic Innovation Through Decentralized Hubs in Uttar Pradesh", doi:"10.5281/ZENODO.16375619", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Proposes decentralized 'Constitution Sabhas' as a novel civic innovation — first to design a hub-based constitutional literacy model for UP's district level."},
+  {id:41, title:"From Control to Immunity: Integrating Institutional Deterrence and Economic Resilience in Vulnerability-Prone Regions of India", doi:"10.5281/ZENODO.16305784", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Coins the 'Control-to-Immunity' paradigm shift — first to reframe vulnerable-region governance from deterrence-based control to resilience-based immunity."},
+  {id:42, title:"The Rhetoric of Reform: A Framing Analysis of Prime Minister Narendra Modi's 'Mann Ki Baat' (2014–2024)", doi:"10.5281/ZENODO.16132854", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-1", summary:"First decade-long framing analysis of Mann Ki Baat using systematic rhetorical methodology — maps reform communication patterns across 100+ episodes."},
+  {id:43, title:"A Geo-Behavioral Audit of the Digital Divide in India: A Framework for Targeted Intervention", doi:"10.5281/ZENODO.16080897", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"Introduces 'Geo-Behavioral Audit' — a novel methodology combining geographic and behavioral data to diagnose digital divide with surgical precision for targeted policy intervention."},
+  {id:44, title:"The Convergence Doctrine: A Paradigm Shift in India's Security and Governance Framework (2014–2025)", doi:"10.5281/ZENODO.16017260", platform:"Zenodo", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"Coins 'The Convergence Doctrine' — first to formally articulate India's 2014–2025 governance-security merger as a named, systematic paradigm shift."},
+  {id:45, title:"Transforming Law and Order: A Comprehensive Analysis of Criminal Justice Revolution in Uttar Pradesh (2017–2025)", doi:"10.5281/ZENODO.15953254", platform:"Zenodo", score:null, cat:"Law & Justice", src:"PDF-1", summary:"First comprehensive academic analysis of UP's criminal justice transformation as a 'revolution' — using before-after metrics to document systemic change."},
+  {id:46, title:"The Dharmic Equity and Autonomy Act (DEAA): A Comprehensive Framework for Addressing Systemic Disparities and Empowering Hindu Communities in India", doi:"10.5281/ZENODO.15899837", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"First to propose a 'Dharmic Equity' legislative framework — novel in applying equity principles (normally reserved for minority protections) to Hindu community empowerment."},
+  {id:47, title:"From Elite Capture to Citizen Empowerment: India's Dual-Track Governance Revolution and the Digital Pathway to Universal Inclusion", doi:"10.5281/ZENODO.15880176", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Coins 'Dual-Track Governance Revolution' — first framework mapping the parallel digital and institutional pathways by which India is dismantling elite capture."},
+  {id:48, title:"SEPRS: A Unified Technological Framework for Smart Encroachment Prevention, Public Housing Rehabilitation, and Electoral Integrity", doi:"10.5281/ZENODO.15872299", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"First to unify encroachment prevention, housing rehabilitation, and electoral integrity into a single technological framework — a novel three-problem-one-solution architecture."},
+  {id:49, title:"The Socioeconomic Shield Program (SSP): A Comprehensive Framework for Empowering Vulnerable Communities and Strengthening Social Cohesion", doi:"10.5281/ZENODO.15860814", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"Proposes 'Socioeconomic Shield' as a new program category — novel in combining economic protection with social cohesion as a unified intervention design."},
+  {id:50, title:"Invisible India: Mapping Economic Marginalization Across Social Categories – A Comprehensive Study of Welfare Access and Poverty Distribution", doi:"10.5281/ZENODO.15841828", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"First to coin 'Invisible India' for economically marginalized groups across all social categories — challenges the dominant caste-only lens on Indian poverty analysis."},
+  {id:51, title:"The Bharat Reboot Fund: A Progressive Equity Transfer Model for Middle-Aged Economic Reintegration in Emerging Economies", doi:"10.5281/ZENODO.15823633", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"First equity-transfer model specifically targeting middle-aged economic reintegration — a demographic typically ignored in labor policy, with 'reboot' framing."},
+  {id:52, title:"Shadow Economies and Real-Time Resilience: The Rise of Quantum-Enhanced Crypto-AI Ecosystems in an Iran-Israel Conflict", doi:"10.62891/455398D6", platform:"DeSci", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"First analysis of quantum-enhanced crypto-AI ecosystems as real-time economic resilience tools in active conflict zones, using Iran-Israel as case study."},
+  {id:53, title:"The Digital Promise Tracking and Accountability System (DPTAS): A Framework for Enhancing Political Accountability and Governance Through Technology", doi:"10.5281/ZENODO.15786298", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Proposes DPTAS — first digital system to track political promises with automated accountability scoring, converting rhetoric into measurable governance output."},
+  {id:54, title:"India's AI Governance Imperative: Crafting a National Framework for Responsible AI in Public Services", doi:"10.5281/ZENODO.15766143", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First comprehensive national AI governance framework specifically calibrated for India's public-service delivery context, distinct from Western AI regulation models."},
+  {id:55, title:"From Arthashastra to AI: Synthesizing Vedic Economic Principles with Digital Financial Inclusion", doi:"10.62891/DED13D5D", platform:"DeSci", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"Novel in tracing a continuous intellectual thread from Kautilya's Arthashastra to modern AI-driven financial inclusion — a 2300-year economic thought synthesis."},
+  {id:56, title:"The Global Competency Mapping Framework: A Merit-Based Talent Revolution", doi:"10.62891/D728D5EF", platform:"DeSci", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"Proposes a global competency mapping framework that decouples talent recognition from credentialism — a merit-first approach to talent identification."},
+  {id:57, title:"The Silent War: Rhetoric, Cognition, and Global Conflict in the 21st Century", doi:"10.62891/B44FCE21", platform:"DeSci", score:"94%", cat:"Geopolitics & Security", src:"PDF-1", summary:"Coins 'The Silent War' as a new conflict taxonomy — first to map rhetoric and cognition as primary weapons in 21st-century state-on-state conflict, beyond kinetic warfare."},
+  {id:58, title:"Addressing Anomalies in Defining Plagiarized Content: A Framework for Fair Attribution in Cultural Embedding", doi:"10.62891/1C5A3847", platform:"DeSci", score:"97%", cat:"Education & Knowledge", src:"PDF-1", summary:"Groundbreaking in identifying 'cultural embedding' as a blind spot in plagiarism definitions — first framework to argue that shared cultural knowledge shouldn't trigger plagiarism flags."},
+  {id:59, title:"The Codex of Orchestrated Turbulence: A Geopolitical Framework for Analyzing Asymmetrical Destabilization Strategies in the Contemporary Era", doi:"10.5281/ZENODO.15606302", platform:"Zenodo", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"Coins 'Orchestrated Turbulence' as a new geopolitical concept — first framework for analyzing how state actors deliberately engineer destabilization as a strategy."},
+  {id:60, title:"Cognitive Trajectory Mapping: A Predictive Engram Architecture for Pre-emptive Threat Deconstruction and Covert Network Illumination", doi:"10.62891/11DB9BBE", platform:"DeSci", score:null, cat:"AI & Technology", src:"PDF-1", summary:"Proposes 'Cognitive Trajectory Mapping' using engram architecture — a novel predictive framework for identifying covert threat networks before they materialize."},
+  {id:61, title:"Dynamic Bio-Ink Tattoos for Adaptive Health Monitoring and Precision Drug Delivery", doi:"10.62891/AF8C7B2E", platform:"DeSci", score:null, cat:"Healthcare & Wellness", src:"PDF-1", summary:"First to propose dynamic bio-ink tattoos that adapt their monitoring and drug-delivery functions in real-time — a convergence of body art, biotech, and precision medicine."},
+  {id:62, title:"Reimagining the Gotra System as a Tool for Social Integration: A Holistic Educational Framework", doi:"10.62891/3A2FA46D", platform:"DeSci", score:null, cat:"Cultural Heritage", src:"PDF-1", summary:"Radically repositions the Gotra system from a marker of exclusion to a tool for social integration — first educational framework to do so with academic rigor."},
+  {id:63, title:"South Asia's Shifting Geopolitics: The Pakistan-Bangladesh-Turkey-United States Nexus, Challenging India's Strategy", doi:"10.62891/929C299B", platform:"DeSci", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"First to map and name the Pakistan-Bangladesh-Turkey-US nexus as a unified geopolitical challenge to India — a four-nation axis analysis absent from existing literature."},
+  {id:64, title:"Revisiting Europe: An Indian Civilizational Lens on History, Identity, Narrative", doi:"10.62891/920EB384", platform:"DeSci", score:null, cat:"Cultural Heritage", src:"PDF-1", summary:"First to apply an Indian civilizational lens to European history and identity — inverting the colonial gaze by analyzing Europe through Bharatiya frameworks."},
+  {id:65, title:"The Indo-China Renaissance Initiative (ICRI): A Neo-Humanistic Framework for Global Harmony through Civilizational Synergy", doi:"10.62891/7F720B63", platform:"DeSci", score:"95%", cat:"Geopolitics & Security", src:"PDF-1", summary:"Proposes ICRI as a neo-humanistic civilizational synergy framework — first to reframe Indo-China relations through renaissance philosophy rather than rivalry."},
+  {id:66, title:"The Sovereign Fulcrum: India's Doctrinal Metamorphosis in an Age of Asymmetric Contestation and Geostrategic Flux", doi:"10.62891/10A710E5", platform:"DeSci", score:"96%", cat:"Geopolitics & Security", src:"PDF-1", summary:"Coins 'Sovereign Fulcrum' to describe India's doctrinal evolution — first to frame India's strategic metamorphosis as a pivot-point doctrine for asymmetric multipolar worlds."},
+  {id:67, title:"Synergizing Biology, Technology, and Culture: A Framework for Bio-Integrated Smart Rural Development", doi:"10.31219/OSF.IO/TWYK3_V1", platform:"OSF", score:null, cat:"Environment & Sustainability", src:"PDF-1", summary:"First to integrate biological systems, technology, and cultural practices into a unified rural development framework — a tri-disciplinary convergence novel in its scope."},
+  {id:68, title:"Strategic Continuity: Ancient Indian Strategic Thought and Contemporary Military Praxis – An Exposition of Operation Sindoor", doi:"10.62891/5EA4C47E", platform:"DeSci", score:"100%", cat:"Geopolitics & Security", src:"PDF-1", summary:"True world-first: first to map ancient Indian strategic thought (from Mahabharata, Arthashastra) directly onto a contemporary military operation (Operation Sindoor) as continuous tradition."},
+  {id:69, title:"The RIC Nexus – A Tripartite Circular Economy & Digital Trade Ecosystem", doi:"10.62891/EAFE8AA1", platform:"DeSci", score:"99%", cat:"Economics & Employment", src:"PDF-1", summary:"Near world-first: proposes a Russia-India-China circular economy + digital trade nexus — first to design a tripartite economic ecosystem combining physical circularity with digital trade."},
+  {id:70, title:"Resilient by Design: Ethical Lessons from Conflict Zones for Sustainable Employment", doi:"10.62891/5F1A8F96", platform:"DeSci", score:"98%", cat:"Economics & Employment", src:"PDF-1", summary:"First to extract employment design principles from conflict zones — novel in using wartime resilience as a template for peacetime sustainable job creation."},
+  {id:71, title:"Financial Proxy Warfare: Employment and Microfinance as Geopolitical Instruments", doi:"10.5281/ZENODO.15337812", platform:"Zenodo", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"Coins 'Financial Proxy Warfare' — first to classify employment schemes and microfinance as geopolitical weapons used by state actors against adversaries."},
+  {id:72, title:"The Shadow Doctrine: Guns, Dams, and Diplomacy in Asymmetric Conflict", doi:"10.62891/11630C11", platform:"DeSci", score:"100%", cat:"Geopolitics & Security", src:"PDF-1", summary:"True world-first: articulates 'The Shadow Doctrine' — a unified theory of asymmetric conflict linking military action, infrastructure weaponization, and diplomatic subversion."},
+  {id:73, title:"Employment Shopping: AI-Powered Mobile Hubs for Inclusive Workforce Integration", doi:"10.62891/ADA36DB8", platform:"DeSci", score:"93%", cat:"Economics & Employment", src:"PDF-1", summary:"Coins 'Employment Shopping' — first to conceptualize job-seeking as a mobile hub-based 'shopping' experience powered by AI, flipping the traditional job-market paradigm."},
+  {id:74, title:"The Birbal Code – Crisis Management with Compassion: A Decentralized, Wisdom-Driven Governance Framework", doi:"10.62891/DC0204BB", platform:"DeSci", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"Coins 'The Birbal Code' — first to extract crisis-management principles from Akbar-Birbal stories and formalize them into a modern decentralized governance framework."},
+  {id:75, title:"Bio-Integrated Smart Villages 3.0: A Quantum-Enhanced, Space-Linked Paradigm for Sustainable Rural Futures", doi:"10.62891/6B07415A", platform:"DeSci", score:"92%", cat:"Environment & Sustainability", src:"PDF-1", summary:"Proposes Smart Villages 3.0 — first to integrate quantum computing, satellite links, and bio-integration into a rural development paradigm, leapfrogging current smart-village models."},
+  {id:76, title:"Kallol Helix – The Cultural ReSkin Engine (Human-Powered, Globally Inspired)", doi:"10.62891/AB48D357", platform:"DeSci", score:null, cat:"Cultural Heritage", src:"PDF-1", summary:"Coins 'Cultural ReSkin Engine' — first to propose a systematic methodology for consciously re-skinning cultural identity through human-powered, globally-inspired design."},
+  {id:77, title:"Decentralized Hydro-Solar-Wind 'Riverine Energy Webs' with Intelligent Energy Sharing Across Borders", doi:"10.62891/C280DEBF", platform:"DeSci", score:null, cat:"Environment & Sustainability", src:"PDF-1", summary:"Proposes 'Riverine Energy Webs' — first to design decentralized cross-border energy-sharing systems along river systems using hydro-solar-wind hybridization."},
+  {id:78, title:"Reverse Proxy Warfare: Turning the Tables on State-Sponsored Terrorism", doi:"10.5281/ZENODO.15250913", platform:"Zenodo", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"Coins 'Reverse Proxy Warfare' — first strategic doctrine for turning proxy warfare tactics back against state sponsors, inverting the asymmetric advantage."},
+  {id:79, title:"Shakti as Sovereign Wisdom: Bharat's Enduring Governance Ethos from Devi to Modern Empowerment", doi:"10.62891/E71B3B19", platform:"DeSci", score:"95%", cat:"Philosophy & Ethics", src:"PDF-1", summary:"First to trace 'Shakti' from its Vedic/Devi origins to modern governance and women's empowerment as a continuous sovereign wisdom tradition in Indian statecraft."},
+  {id:80, title:"The Helix Doctrine: A Manifesto for Independent Innovators – Redefining Power, Truth, and Innovation in a Post-Institutional Era", doi:"10.5281/ZENODO.15244072", platform:"Zenodo", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"A full manifesto articulating 'The Helix Doctrine' — first to define a comprehensive philosophy for independent innovators operating outside institutional academia."},
+  {id:81, title:"EMOT – Emergency Morphological Tactics System: A Paradigm Shift in Urban Defense", doi:"10.62891/8381D525", platform:"DeSci", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"Coins EMOT — first tactical system that treats urban morphology (building shapes, street layouts) as a dynamic defense variable that can be reconfigured during emergencies."},
+  {id:82, title:"Helix Kallol Protocol (HKP): A Legally Enforceable System for Ethical Employment Using Proof-of-Ethics (PoE), Attrition Penalties, and AI Risk Prediction", doi:"10.62891/0AA458B0", platform:"DeSci", score:"97%", cat:"Economics & Employment", src:"PDF-1", summary:"Introduces 'Proof-of-Ethics' (PoE) as an enforceable employment standard — first to combine blockchain-style verification with ethical employment contracts and AI risk scoring."},
+  {id:83, title:"HELIX: India's Neural-Powered Predictive Security Framework to Combat Crime, Terrorism, and Exploitation", doi:"10.62891/FDA3A74C", platform:"DeSci", score:"95%", cat:"AI & Technology", src:"PDF-1", summary:"Proposes HELIX as a neural-network-powered predictive security framework — first designed specifically for India's crime-terrorism-exploitation threat matrix."},
+  {id:84, title:"Contested Legacies: Analyzing the Impact of Controversial Legislations by the Indian National Congress on the Hindu Community", doi:"10.62891/286B98E6", platform:"DeSci", score:"96%", cat:"Governance & Policy", src:"PDF-1", summary:"First systematic legal-historical analysis of how specific Indian National Congress legislations impacted the Hindu community — filling a significant gap in post-independence scholarship."},
+  {id:85, title:"YouTube University: A New Dimension of Global Education – The Rise of the Helix Originator", doi:"10.5281/ZENODO.15202142", platform:"Zenodo", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"Formalizes 'YouTube University' as a legitimate educational dimension — first academic treatment of YouTube-based knowledge production as a parallel education system."},
+  {id:86, title:"Helix Originator: A Pioneering Matrix for Catalyzing Intellectual Voids into Trailblazing Discoveries", doi:"10.62891/BCB1F15A", platform:"DeSci", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"Defines 'Helix Originator' as a matrix methodology for identifying intellectual voids and systematically converting them into research breakthroughs — a new innovation process framework."},
+  {id:87, title:"The Janvarta Framework: Reimagining Governance Through Ancient Wisdom and Technological Innovation", doi:"10.62891/4F5D2D54", platform:"DeSci", score:"94%", cat:"Governance & Policy", src:"PDF-1", summary:"Coins 'Janvarta' (People's Awakening) — first governance framework that pairs ancient Indian wisdom texts with specific technological innovations as paired implementation units."},
+  {id:88, title:"Vortex of Temporal Equity: Unraveling Chrono-Predation and Analyzing Pathways to Societal Balance", doi:"10.62891/175DD31D", platform:"DeSci", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"Coins 'Chrono-Predation' — first to theorize that powerful actors extract temporal value (time/lifespan/opportunity) from vulnerable populations, and proposes equity countermeasures."},
+  {id:89, title:"Neurolinguistic Programming of Synthetic Biology Systems: A Linguistic-Driven Paradigm for Bio-Circuit Control", doi:"10.62891/F39A231B", platform:"DeSci", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to propose using neurolinguistic programming principles to control synthetic biology circuits — a radical cross-disciplinary bridge between NLP and bioengineering."},
+  {id:90, title:"Vedic Renaissance: Livelihoods and Ventures in Eco-Spiritual Homes", doi:"10.62891/C3069D11", platform:"DeSci", score:"91%", cat:"Economics & Employment", src:"PDF-1", summary:"First to design livelihood models around 'Eco-Spiritual Homes' — combining Vedic lifestyle principles with modern venture creation in a residential-community format."},
+  {id:91, title:"India's Strategic Triumph in Trump's Economic Chaos: BIMSTEC, Media Shifts, and the Global Power Play", doi:"10.62891/1E72C588", platform:"DeSci", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"First to frame India's BIMSTEC strategy as a direct counter to Trump-era economic disruption — a geopolitical analysis absent from Western-centric accounts."},
+  {id:92, title:"Celestial Graphometrics: A Sidereal Schema for Temperament, Affluence, and Vocational Delineation – An Unprecedented Occupational Paradigm", doi:"10.62891/EFEF9D1E", platform:"DeSci", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"Proposes 'Celestial Graphometrics' — first to combine sidereal astrology with graphometric analysis for vocational guidance, creating an unprecedented occupational matching paradigm."},
+  {id:93, title:"Varna-Vichar Sankalp (VVS): A Covenant of Duty-Woven Existence – A Schema for Ethos-Driven Societal Renewal", doi:"10.62891/76688F37", platform:"DeSci", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"Reimagines Varna through 'Vichar Sankalp' (thought-resolve) — first to recast the Varna system as a voluntary, ethos-driven covenant rather than a birth-based hierarchy."},
+  {id:94, title:"Lone Wolf Nexus: Swarm-Coded Labor Immunity", doi:"10.62891/12388252", platform:"DeSci", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"Coins 'Swarm-Coded Labor Immunity' — first to propose collective self-defense mechanisms for gig workers using swarm-intelligence coding principles."},
+  {id:95, title:"The Social Micro-Economy Engine (SMEE)", doi:"10.62891/7A9960F6", platform:"DeSci", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"Proposes SMEE — first engine model for social micro-economies that treats hyperlocal transactions as a self-sustaining economic system with measurable outputs."},
+  {id:96, title:"The Positive Staircase Model: A Decentralized Framework for Employment and Entrepreneurship", doi:"10.62891/CC1E90D2", platform:"DeSci", score:"99%", cat:"Economics & Employment", src:"PDF-1", summary:"Near world-first: the 'Positive Staircase Model' treats employment as an upward-stepping decentralized process — first to design a staircase-based progression for gig-to-entrepreneur transitions."},
+  {id:97, title:"The Codex of Orchestrated Turbulence: A Neoteric Lexicon in Global Hegemonic Contestation", doi:"10.62891/F220C8F5", platform:"DeSci", score:"92%", cat:"Geopolitics & Security", src:"PDF-1", summary:"Creates a complete neoteric lexicon for global hegemonic contestation — first to coin a systematic vocabulary for describing modern power struggles that existing terminology fails to capture."},
+  {id:98, title:"Live Your Dream Kallol: A Mobile-Free Rejuvenation Corridor for Economic and Social Upliftment", doi:"10.62891/42C0CF7D", platform:"DeSci", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"First to design a 'mobile-free rejuvenation corridor' as an economic upliftment intervention — novel in treating digital detox as a pathway to productivity and social renewal."},
+  {id:99, title:"Nadi Utsav: The Living Rivers Renaissance – A Nationwide Celebration of Water, Wisdom, and Well-being", doi:"10.5281/ZENODO.15049487", platform:"Zenodo", score:null, cat:"Environment & Sustainability", src:"PDF-1", summary:"Proposes 'Nadi Utsav' as a nationwide river festival framework — first to combine water conservation, cultural wisdom, and public well-being into a celebratory governance tool."},
+  {id:100, title:"LEADAI: The World's First AI-Powered Leadership Blueprint Platform Inspired by Modiji's Governance Style and Beyond", doi:"10.5281/ZENODO.15036099", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"Claims world's first AI-powered leadership blueprint platform — uses Modi's governance style as training data, then extends beyond it with AI-generated leadership models."},
+  {id:101, title:"African Bio-Synthetic Alliance (ABSA): Engineering Sustainable Bio-Solutions for Africa's Future", doi:"10.5281/ZENODO.15018265", platform:"Zenodo", score:null, cat:"Environment & Sustainability", src:"PDF-1", summary:"Proposes ABSA — first India-Africa bio-synthetic partnership framework combining synthetic biology with sustainable development goals for the African continent."},
+  {id:102, title:"MindSync Hubs: Decentralized Mental Wellness Ecosystems Powered by Community and AI", doi:"10.5281/ZENODO.15003952", platform:"Zenodo", score:null, cat:"Healthcare & Wellness", src:"PDF-1", summary:"Proposes 'MindSync Hubs' — first decentralized mental wellness model that combines AI-driven personalization with community-based peer support as a dual-engine system."},
+  {id:103, title:"Digital Seed Networks (DSN): A Novel Approach to Bridging the Urban-Rural Digital Divide", doi:"10.5281/ZENODO.15002340", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"Coins 'Digital Seed Networks' — first to model digital literacy diffusion using agricultural seed-distribution metaphors, creating a scalable rural-urban bridge methodology."},
+  {id:104, title:"Arctic Cooperation Consortium (ACC): A Neutrality-Driven Economic and Logistical Framework for the Arctic", doi:"10.5281/ZENODO.14993798", platform:"Zenodo", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"First Arctic governance framework centered on 'neutrality-driven' cooperation — novel in positioning India as a neutral economic-logistical partner rather than a geopolitical claimant."},
+  {id:105, title:"GWISP: Global War Impact Simulation Platform – A Highly Innovative AI-Driven Integrated Model for Predicting Economic and Employment Vulnerabilities in Multi-Domain Conflict Scenarios", doi:"10.5281/ZENODO.14992233", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"Proposes GWISP — first AI-driven simulation platform that integrates economic and employment vulnerability prediction across multi-domain war scenarios."},
+  {id:106, title:"AI-Powered Telemedicine for India's Middle Class: A Novel Approach to Bridging the Healthcare Gap", doi:"10.5281/ZENODO.14990896", platform:"Zenodo", score:null, cat:"Healthcare & Wellness", src:"PDF-1", summary:"First to specifically target India's middle class (not rural poor) as an underserved telemedicine demographic — novel in addressing the 'missing middle' of Indian healthcare."},
+  {id:107, title:"The Employment Oracle: Predicting 50 Future Niches and Preserving Them for Verification", doi:"10.5281/ZENODO.14972162", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"First to predict 50 future employment niches with a built-in time-capsule verification mechanism — a novel predictive-and-accountable approach to labor forecasting."},
+  {id:108, title:"India's Shifting Counter-Insurgency Strategy Against Left-Wing Extremism: Policy, Impact, and Global Lessons", doi:"10.5281/ZENODO.14926797", platform:"Zenodo", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"First comprehensive mapping of India's evolving LWE counter-insurgency strategy with explicit global lesson extraction — a policy-to-practice transfer framework."},
+  {id:109, title:"Sanatana Dharma Swasthya and Samriddhi Board (SDSSB): A Proposal for Community-Led Healthcare and Economic Empowerment", doi:"10.5281/ZENODO.14902746", platform:"Zenodo", score:null, cat:"Healthcare & Wellness", src:"PDF-1", summary:"First to propose a faith-community-led healthcare board (SDSSB) that integrates dharmic principles with modern healthcare delivery and economic empowerment."},
+  {id:110, title:"Empowering the Unskilled: Establishing a Ministry of Motor and Bike Mechanics to Drive Global Employment", doi:"10.5281/ZENODO.14852671", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"First to propose a dedicated Ministry for motor/bike mechanics — novel in elevating an unskilled trade to ministerial-level governance for global employment generation."},
+  {id:111, title:"Empowering Small-Scale Industries (Laghu Udyog) in India: Bridging Gaps, Creating Employment, and Identifying Global Niches", doi:"10.5281/ZENODO.14840523", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"First comprehensive framework for identifying global niche markets specifically for India's small-scale industries — a gap-analysis-to-niche-mapping pipeline."},
+  {id:112, title:"Reimagining Rhetoric: Integrating AI, Automation, and Ethical Philosophy into the Rhetoric Teaching Program for the Digital Workforce", doi:"10.5281/ZENODO.14833190", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-1", summary:"First rhetoric teaching program that integrates AI, automation, and ethical philosophy as core components — treating rhetoric as a digital-workforce survival skill."},
+  {id:113, title:"Combating Misinformation through AI, Government Collaboration, and Accountability Mechanisms: A Global Strategy to Curb Fake News and Enhance Digital Responsibility", doi:"10.5281/ZENODO.14809595", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First global anti-misinformation strategy that mandates AI-government collaboration with built-in accountability mechanisms — a tri-partite approach novel in its structural requirements."},
+  {id:114, title:"Project Udaan: A Global Framework for Exam Integrity and Talent Retention", doi:"10.5281/ZENODO.14799546", platform:"Zenodo", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"Proposes 'Project Udaan' — first global framework that links exam integrity directly to talent retention, treating cheating prevention as a national human-capital strategy."},
+  {id:115, title:"Revolutionizing Law Enforcement: A Multilingual AI-Driven FIR Lodging System for Global Efficiency, Transparency, and Justice Accessibility", doi:"10.5281/ZENODO.14792649", platform:"Zenodo", score:null, cat:"Law & Justice", src:"PDF-1", summary:"Global-scale version of the multilingual FIR system — first to propose AI-driven multilingual complaint filing as a universal justice accessibility standard."},
+  {id:116, title:"Precision Employment: A Segmented Intervention Framework for Global Poverty Alleviation through Tailored Job Creation and Government-enabled Entrepreneurship", doi:"10.5281/ZENODO.14788570", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"Coins 'Precision Employment' — first to apply medical-grade precision (segmented, targeted, measured) to employment interventions for poverty alleviation."},
+  {id:117, title:"Secret Algorithm Codes for Social Impact: A Multi-Niche Approach to Empowering Underserved Communities and Generating Employment", doi:"10.5281/ZENODO.14783910", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to frame 'algorithm codes' as social-impact tools with multi-niche deployment — novel in treating proprietary algorithms as community empowerment instruments."},
+  {id:118, title:"Emerging Employment Opportunities in Water Purification Technologies: Creation of New Niches and Workforce Specialization", doi:"10.5281/ZENODO.14774231", platform:"Zenodo", score:null, cat:"Environment & Sustainability", src:"PDF-1", summary:"First to map water purification as a niche employment generator — novel in identifying specific new job roles within water tech that don't yet exist in labor classifications."},
+  {id:119, title:"Micro-Scale Disruption: Future Niches, Low-Capital Ventures, and Their Macroeconomic Implications", doi:"10.5281/ZENODO.14771324", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"Coins 'Micro-Scale Disruption' — first framework arguing that low-capital micro-ventures can produce macroeconomic disruption, inverting the venture-capital scaling assumption."},
+  {id:120, title:"Integrated Sensor-Based Blockchain System for Real-Time Railway Safety Monitoring", doi:"10.5281/ZENODO.14750639", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to integrate IoT sensors with blockchain for real-time railway safety — novel in creating an immutable, tamper-proof safety audit trail for Indian Railways."},
+  {id:121, title:"Redefining Global Recognition: The Case for Honoring Technological Innovators", doi:"10.5281/ZENODO.14737112", platform:"Zenodo", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"First to argue for a global recognition system specifically for technological innovators (not just scientists) — proposes new honor categories absent from Nobel/Fields frameworks."},
+  {id:122, title:"Global Epic Translation Initiative (GETI): A Cross-Cultural Intellectual Property Framework for Promoting Universal Harmony", doi:"10.5281/ZENODO.14730457", platform:"Zenodo", score:null, cat:"Cultural Heritage", src:"PDF-1", summary:"Proposes GETI — first to combine epic literature translation with an IP framework for cross-cultural harmony, treating translated epics as protected cultural assets."},
+  {id:123, title:"Buddhist AI: Mindful Cybersecurity & Ethical Awareness", doi:"10.5281/ZENODO.14722584", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to apply Buddhist mindfulness principles to cybersecurity design — creating an 'awareness-first' defensive paradigm drawn from sati and vipassana traditions."},
+  {id:124, title:"Sound Healing Compositions for Pain Relief and Relaxation", doi:"10.5281/ZENODO.14726440", platform:"Zenodo", score:null, cat:"Healthcare & Wellness", src:"PDF-1", summary:"Novel sound-healing compositions designed with specific therapeutic intent — first to publish research-grade healing compositions with documented pain-relief rationale."},
+  {id:125, title:"Taoist AI: Adaptive and Effortless Cyber Defense", doi:"10.5281/ZENODO.14722623", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to apply Taoist wu-wei (effortless action) to cyber defense design — creating adaptive systems that flow with attacks rather than resist them directly."},
+  {id:126, title:"Heritage Tech & Identity Engineering: A New Frontier for Cultural Preservation and Employment", doi:"10.5281/ZENODO.14716752", platform:"Zenodo", score:null, cat:"Cultural Heritage", src:"PDF-1", summary:"Coins 'Identity Engineering' — first to treat cultural identity as an engineerable product using technology, while simultaneously generating employment in heritage-tech."},
+  {id:127, title:"Holistic Digital Wellness Ecosystem: An AI-Driven Approach to Personalized Health and Productivity", doi:"10.5281/ZENODO.14716181", platform:"Zenodo", score:null, cat:"Healthcare & Wellness", src:"PDF-1", summary:"First to combine 'holistic wellness' (physical + mental + spiritual) with AI-driven personalization in a unified digital ecosystem — beyond typical health-app scope."},
+  {id:128, title:"Roots Reconnect: A Secure and Anonymous DNA-Based Ancestry Discovery Platform", doi:"10.5281/ZENODO.14720392", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First DNA-ancestry platform designed with anonymity and security as primary features — addresses the privacy gaps in commercial ancestry-testing services."},
+  {id:129, title:"Stoic AI: Rational Decision-Making in Cybersecurity", doi:"10.5281/ZENODO.14721554", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to apply Stoic philosophy (dichotomy of control, amor fati) to AI-driven cybersecurity decision-making — creating rationally bounded automated defense systems."},
+  {id:130, title:"Legends of the Bharatverse: Unlocking the Past", doi:"10.5281/ZENODO.14711593", platform:"Zenodo", score:null, cat:"Cultural Heritage", src:"PDF-1", summary:"Coins 'Bharatverse' — first to frame Indian civilizational narratives as a 'verse' (like metaverse), creating an immersive narrative universe for cultural education."},
+  {id:131, title:"Samsara and the Cycles of AI: Exploring Rebirth and Evolution in Machine Learning Models", doi:"10.5281/ZENODO.14709519", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to use the concept of Samsara (cycles of rebirth) as a metaphor and design principle for ML model lifecycle management — novel philosophical-technical bridge."},
+  {id:132, title:"Sanatana Dharma and Mahakumbh: A Blueprint for Global Stability, Cultural Revival, and Future Prosperity", doi:"10.5281/ZENODO.14713963", platform:"Zenodo", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"First to position Mahakumbh as a governance blueprint — novel in extracting organizational and stability principles from a mass pilgrimage for global application."},
+  {id:133, title:"Taoism and AI: Designing Algorithms that Align with the Natural Flow", doi:"10.5281/ZENODO.14697404", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to systematically map Taoist principles (yin-yang, wu-wei, flow) onto algorithm design as alignment constraints — a non-Western AI alignment approach."},
+  {id:134, title:"The Lotus and the Star: Interactive Animated Tales of Wisdom", doi:"10.5281/ZENODO.14697346", platform:"Zenodo", score:null, cat:"Cultural Heritage", src:"PDF-1", summary:"First interactive animated format for Indian wisdom tales — combines storytelling with digital interactivity for cultural education, a new media-genre for civilizational content."},
+  {id:135, title:"Myths and Realities of Manusmriti: A Comparative Study with Ancient Legal Texts", doi:"10.5281/ZENODO.14680437", platform:"Zenodo", score:null, cat:"Philosophy & Ethics", src:"PDF-1", summary:"First comparative study placing Manusmriti alongside other ancient legal texts (Hamurabi, Torah, etc.) to contextualize rather than isolate its provisions."},
+  {id:136, title:"Stoicism and the Autonomous Machine: How Ancient Ethics Can Inform AI Governance", doi:"10.5281/ZENODO.14675314", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to develop a detailed Stoic ethics framework for autonomous machines — treats virtue ethics, not utilitarianism, as the foundation for AI governance."},
+  {id:137, title:"Artificial Intelligence and Buddhist Philosophy: Impermanence, Non-self, and Ethical Engagement in the Lifecycle of Machine Learning Systems", doi:"10.5281/ZENODO.14649645", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to map anicca (impermanence) and anatta (non-self) onto ML system lifecycles — a Buddhist framework for understanding model drift, retraining, and ethical decommissioning."},
+  {id:138, title:"Revolutionizing Religious Tourism: The Transformative Role of Yogiji in Spiritual and Economic Growth", doi:"10.5281/ZENODO.14642678", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"First to analyze a contemporary spiritual leader's economic impact on religious tourism using formal economic methodology — bridges faith and development economics."},
+  {id:139, title:"The Paradox of Control: Taoist Teachings on Balancing Autonomy and Responsibility in AI Systems", doi:"10.5281/ZENODO.14647694", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to frame the AI autonomy-responsibility tension as a Taoist paradox — novel in using Taoist dialectics to resolve the control problem in AI ethics."},
+  {id:140, title:"The Future of Resource Access: AI and Blockchain for Enhanced Control", doi:"10.5281/ZENODO.14633913", platform:"Zenodo", score:null, cat:"AI & Technology", src:"PDF-1", summary:"First to combine AI prediction with blockchain verification for resource access governance — a dual-layer approach to managing scarce resources with transparency."},
+  {id:141, title:"Invisible Shield: A Smart Border Security Solution", doi:"10.5281/ZENODO.14632981", platform:"Zenodo", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"Proposes 'Invisible Shield' — first border security concept that relies on invisible (sensor/AI-based) rather than physical barriers, with an emphasis on non-lethal deterrence."},
+  {id:142, title:"Revolutionizing Banking Services: A Customer-Centric Model for India Inspired by Global Innovations", doi:"10.5281/ZENODO.14630956", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"First to synthesize global banking innovations into a unified customer-centric model specifically redesigned for India's socio-economic context."},
+  {id:143, title:"Smart Circular Economy Platform for Rural Sustainability: A Comprehensive Approach to Waste Management, Energy Production, and Economic Development in Rural Areas", doi:"10.5281/ZENODO.14632861", platform:"Zenodo", score:null, cat:"Environment & Sustainability", src:"PDF-1", summary:"First smart circular economy platform designed specifically for rural areas — integrates waste-to-energy, local economic loops, and digital monitoring in one system."},
+  {id:144, title:"Leadership Lessons Across History: A Global Strategy Blueprint for Modern Challenges", doi:"10.5281/ZENODO.14627540", platform:"Zenodo", score:null, cat:"Governance & Policy", src:"PDF-1", summary:"First to extract leadership lessons from diverse civilizations (not just Western) and synthesize them into a unified modern strategy blueprint."},
+  {id:145, title:"Blockchain-Driven Predictive Pandemic Management System with AI, Nanotechnology, and Quantum Computing Enhancements", doi:"10.5281/ZENODO.14617295", platform:"Zenodo", score:null, cat:"Healthcare & Wellness", src:"PDF-1", summary:"First to integrate blockchain + AI + nanotech + quantum computing into a single pandemic management architecture — a four-technology convergence framework."},
+  {id:146, title:"Optimizing Resource Allocation of Religious Donations for Social Welfare: A Framework for Supporting Vulnerable Hindu Communities in India", doi:"10.5281/ZENODO.14611017", platform:"Zenodo", score:null, cat:"Economics & Employment", src:"PDF-1", summary:"First framework for optimizing religious donation allocation specifically for Hindu community welfare — applies operations research to temple trust fund distribution."},
+  {id:147, title:"The Rhetoric of Bollywood: Exploring Themes of Identity, Unity, and Social Justice", doi:"10.5281/ZENODO.14606231", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-1", summary:"First systematic rhetorical analysis of Bollywood as a persuasive medium — treats film dialogue and narrative as rhetorical texts with measurable impact."},
+  {id:148, title:"Beyond Belief: How Mantras and Slokas Impact Mind and Body", doi:"10.5281/ZENODO.14600309", platform:"Zenodo", score:null, cat:"Healthcare & Wellness", src:"PDF-1", summary:"First to compile scientific evidence for mind-body impacts of mantras and slokas in a single study — bridges spiritual practice and psychosomatic research."},
+  {id:149, title:"Gurukul and Indian Philosophy: Solutions for Europe?", doi:"10.5281/ZENODO.14598097", platform:"Zenodo", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"First to seriously propose the Gurukul system and Indian philosophical frameworks as solutions for Europe's educational and social crises — a reverse-knowledge-transfer thesis."},
+  {id:150, title:"Countering Left-Wing Extremism: India's Policy Shift", doi:"10.2139/SSRN.5155509", platform:"SSRN", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"First SSRN-published analysis of India's LWE policy shift — brings academic rigor to a domain previously dominated by government reports and journalism."},
+  {id:151, title:"Cultural Bias in Plagiarism Detection: Rethinking Authorship in the Digital Age", doi:"10.2139/SSRN.5358965", platform:"SSRN", score:null, cat:"Education & Knowledge", src:"PDF-1", summary:"SSRN version of the plagiarism bias critique — extends the argument to international academic publishing standards, calling for culturally sensitive authorship definitions."},
+  {id:152, title:"Reverse Proxy Warfare: Strategy Academic Framework for Subverting State-Sponsored Terrorism", doi:"10.6084/M9.FIGSHARE.28922408", platform:"Figshare", score:"100%", cat:"Geopolitics & Security", src:"PDF-1", summary:"True world-first: formal academic framework for 'Reverse Proxy Warfare' — provides a complete strategic doctrine for subverting state-sponsored terror using the aggressor's own methods."},
+  {id:153, title:"The Shadow Doctrine: Guns, Dams, and Diplomacy in Asymmetric Conflict", doi:"10.2139/SSRN.5248653", platform:"SSRN", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"SSRN-published version of The Shadow Doctrine — gives academic legitimacy to the unified theory of asymmetric conflict combining kinetic, infrastructural, and diplomatic tools."},
+  {id:154, title:"Sastra and Sakti: An Analysis of Operation Sindoor as a Manifestation of Ancient Indian Strategic Thought", doi:"10.2139/SSRN.5286196", platform:"SSRN", score:null, cat:"Geopolitics & Security", src:"PDF-1", summary:"SSRN version of the Operation Sindoor analysis — first on SSRN to analyze a modern military operation through the lens of Sastra (scripture) and Sakti (power) traditions."},
+  {id:155, title:"Decolonizing the Caste Narrative: A Historical and Socio-Cultural Analysis of the Role of Dalit Icons in Hinduism and Indian History", doi:"See DeSci Nodes", platform:"DeSci Nodes", score:"100%", cat:"Philosophy & Ethics", src:"PDF-1", summary:"True world-first: first to systematically reclaim Dalit icons within Hinduism by decolonizing the caste narrative — challenges both colonial and post-colonial misreadings with primary source evidence."},
+  {id:156, title:"Narrative Quantum Entanglement in Geopolitical Systems (NQEGS): A Conceptual Framework for Understanding Global Narrative Influence", doi:"See DeSci Nodes", platform:"DeSci Nodes", score:"94%", cat:"Geopolitics & Security", src:"PDF-1", summary:"Coins 'Narrative Quantum Entanglement' — first to apply quantum entanglement as a metaphor for how geopolitical narratives become irreversibly linked across nations."},
+  {id:157, title:"Silicon Alps – How Switzerland Redefined Power in a Digital World", doi:"See DeSci Nodes", platform:"DeSci Nodes", score:"91%", cat:"Geopolitics & Security", src:"PDF-1", summary:"Coins 'Silicon Alps' — first to position Switzerland's quiet digital transformation as a power redefinition strategy, challenging Silicon Valley as the sole tech-hegemony model."},
+  {id:158, title:"Unpacking the USCIRF Report on India: A Critical Analysis of Western Narratives, Hindu Revivalism, and the Role of Academic Bias", doi:"See DeSci Nodes", platform:"DeSci Nodes", score:"90%", cat:"Governance & Policy", src:"PDF-1", summary:"First to systematically deconstruct the USCIRF report as a Western narrative instrument — novel in using academic bias theory to analyze a US government religious-freedom report."},
+
+  // ─── FROM PDF-2 (NOVEL ARTICLES LIST) — EXCLUDING DUPLICATES ───
+  {id:159, title:"Bharat Rights Twin: A Citizen–Policy–Justice Operating Layer for Last-Mile Governance in India", doi:"10.6084/m9.figshare.32102773", platform:"Figshare", score:null, cat:"Governance & Policy", src:"PDF-2", summary:"Proposes a three-layer 'operating system' (Citizen-Policy-Justice) for last-mile governance — first to model governance delivery as a software stack with interoperable layers."},
+  {id:160, title:"Defining the Unaffiliated Independent Researcher (UIR): A Formal Taxonomy for an Emerging Category of Knowledge Producer", doi:"10.17613/X24C0-96280", platform:"HCommons", score:null, cat:"Education & Knowledge", src:"PDF-2", summary:"World's first formal taxonomy for 'Unaffiliated Independent Researchers' — defines, classifies, and legitimizes a growing knowledge-producer category that academia has no name for."},
+  {id:161, title:"The Kallol Taxonomy of Research DOIs", doi:"10.6084/m9.figshare.31872724", platform:"Figshare", score:null, cat:"Education & Knowledge", src:"PDF-2", summary:"First taxonomy system for classifying research DOIs by novelty type, knowledge domain, and independence status — a meta-research classification framework."},
+  {id:162, title:"The Dead Market: An Open Research Framework on Market Mortality and Systemic Risk", doi:"10.6084/m9.figshare.31797508", platform:"Figshare", score:null, cat:"Economics & Employment", src:"PDF-2", summary:"Coins 'Market Mortality' — first framework to treat market death (not just failure) as a measurable phenomenon with systemic risk implications for the broader economy."},
+  {id:163, title:"The Architecture Genome Project: A Theoretical Policy Framework for Evolutionary Software Governance", doi:"10.6084/m9.figshare.31743739", platform:"Figshare", score:null, cat:"AI & Technology", src:"PDF-2", summary:"First to propose mapping the 'genome' of software architecture for governance purposes — treats code structure as an evolving organism subject to policy-guided selection."},
+  {id:164, title:"Structural Ethics in Civic Artificial Intelligence: The Algorithmic Sandwich Protocol – A Five-Layer Biosemiotic Architecture for Embedded Governance Validation in Public Decision Systems", doi:"10.2139/ssrn.6416121", platform:"SSRN", score:null, cat:"AI & Technology", src:"PDF-2", summary:"Coins 'Algorithmic Sandwich Protocol' — first five-layer biosemiotic architecture for embedding ethical validation directly into civic AI decision pipelines."},
+  {id:165, title:"Constructive vs. Extreme Rhetoric in Managerial Communication: A Holistic Framework Integrating Rhetorical Devices, Emotional Intelligence, and Eastern Philosophy", doi:"10.36948/ijfmr.2024.v06i06.32335", platform:"IJFMR", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First to distinguish 'constructive' from 'extreme' rhetoric in managerial contexts using Eastern philosophy as the evaluative framework — novel tri-disciplinary integration."},
+  {id:166, title:"Advancing Rhetorical Strategies in Virtual Litigation: Balancing Persuasion and Equity in Digital Courtrooms", doi:"10.38124/ijisrt/ijisrt24nov1224", platform:"IJISRT", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First to address rhetoric specifically in virtual/digital litigation — identifies persuasion-equity tensions unique to online courtrooms that physical courts don't present."},
+  {id:167, title:"Beyond Words: A Rhetoric Teaching Program for Effective Communication", doi:"10.70127/irjedt.vol.6.issue12.1239", platform:"IRJEDT", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"Foundational rhetoric teaching program that goes 'beyond words' to include non-verbal, visual, and contextual rhetoric — a holistic communication pedagogy framework."},
+  {id:168, title:"Algorithmic Rhetoric in the Age of Generative AI: Understanding Persuasion in Machine Learning Outputs", doi:"10.5281/ZENODO.14178214", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"Coins 'Algorithmic Rhetoric' for GenAI outputs — first to analyze how LLMs inherently use persuasive structures (not just generate content), creating a new rhetoric subfield."},
+  {id:169, title:"Narrative Rhetoric in Virtual Reality (VR): Crafting Persuasive Experiences in Immersive Media", doi:"10.5281/ZENODO.14182200", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First to extend rhetorical analysis into VR — treats spatial immersion, agency, and embodiment as rhetorical variables, creating a new 'immersive rhetoric' framework."},
+  {id:170, title:"Algorithm Rhetoric Expert: Bridging Rhetorical Mastery and Social Media Algorithms for a Healthier Digital Ecosystem", doi:"10.5281/ZENODO.14053099", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"Proposes 'Algorithm Rhetoric Expert' as a new professional role — first to define expertise at the intersection of rhetorical mastery and algorithmic literacy for digital ecosystem health."},
+  {id:171, title:"Integrating Rhetorical Devices with Meditation and Yoga: A Holistic Approach to Youth Development and Behavioral Regulation", doi:"10.5281/ZENODO.14054651", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First to integrate rhetorical training with meditation and yoga for youth behavioral regulation — a mind-body-rhetoric triad with no prior equivalent in literature."},
+  {id:172, title:"Rhetorical Analysis as a Framework for Evaluating Academic Research: Distinguishing Anti-Establishment from Anti-National Theory", doi:"10.5281/ZENODO.14169641", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First to use rhetorical analysis to distinguish 'anti-establishment' from 'anti-national' research — a novel evaluative framework for academic freedom debates."},
+  {id:173, title:"The Role of Rhetorical Devices in Hindi Literature: A Path to Enhanced Critical Thinking in Students", doi:"10.5281/ZENODO.14063555", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First to map Hindi literary rhetorical devices onto critical thinking skill development — novel in using vernacular literature as a formal thinking-skills training tool."},
+  {id:174, title:"Empowering Young Minds Through Rhetorical Devices in Hymns: A Curriculum Proposal for English Literature", doi:"10.5281/ZENODO.14059843", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First curriculum proposal using hymns as rhetorical teaching texts — novel in treating sacred verse as a vehicle for English literature rhetorical analysis."},
+  {id:175, title:"The Role of Rhetorical Devices in People Management: Enhancing Employee Induction to Reduce Attrition Rates", doi:"10.5281/ZENODO.14056980", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First to apply rhetorical device analysis to employee induction processes — reframes onboarding as a rhetorical act where persuasion directly impacts attrition."},
+  {id:176, title:"The Role of Rhetorical Devices in Professional Communication: A Case Study", doi:"10.5281/ZENODO.14057631", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"Empirical case study establishing measurable links between specific rhetorical device usage and professional communication outcomes — a rare quantitative rhetoric study."},
+  {id:177, title:"Analyzing the Use of Rhetorical Devices in a Fictitious Police FIR: A Case Study", doi:"10.5281/ZENODO.14044800", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First to use a fictitious FIR as a rhetorical analysis subject — novel methodological innovation that bypasses privacy constraints while examining legal rhetoric."},
+  {id:178, title:"The Tale of Two Kings: Exploring the Power of Rhetoric and Wisdom", doi:"10.5281/ZENODO.14048736", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First fictional/dialogue-based rhetorical analysis — uses imagined king-to-king conversation as a pedagogical device for exploring persuasion and wisdom."},
+  {id:179, title:"The Power of Words: A Hypothetical Dialogue Between Lord Ram and Ravan", doi:"10.5281/ZENODO.14041159", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First rhetorical analysis conducted through a hypothetical Ram-Ravan dialogue — uses mythological figures as rhetorical exemplars in an innovative format."},
+  {id:180, title:"The Dialogue of Wisdom and Regret: Lord Ram and Ravan's Final Exchange", doi:"10.5281/ZENODO.14054087", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"Companion piece exploring regret as a rhetorical device through mythological dialogue — first to analyze the rhetoric of repentance using Ramayana's climactic exchange."},
+  {id:181, title:"Harnessing Rhetoric for Moral Enlightenment: The Role of Rhetorical Teachers in Global Education", doi:"10.5281/ZENODO.14062990", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First to position rhetoric teachers as agents of 'moral enlightenment' — elevates rhetoric pedagogy from skill-transfer to ethical transformation in global education."},
+  {id:182, title:"Spiritual Rhetoric and Its Response to Modern Challenges: Insights from the Bhagavad Gita, Aristotle, and Sivananda", doi:"10.5281/ZENODO.14288032", platform:"Zenodo", score:null, cat:"Philosophy & Ethics", src:"PDF-2", summary:"First to synthesize Bhagavad Gita, Aristotelian rhetoric, and Sivananda's teachings into a unified 'spiritual rhetoric' framework addressing modern ethical challenges."},
+  {id:183, title:"Mantras as Cognitive Instruments: A Scientific Examination of Spiritual Practices and Their Mental Health Implications", doi:"10.5281/ZENODO.14194459", platform:"Zenodo", score:null, cat:"Healthcare & Wellness", src:"PDF-2", summary:"First to rigorously examine mantras as 'cognitive instruments' (not just spiritual tools) — novel in applying cognitive science methodology to mantra recitation's mental health effects."},
+  {id:184, title:"The Transformative Power of Mantras and Slokas: Integrating Evidence-Based Healing with Spiritual Awakening", doi:"10.5281/ZENODO.14173781", platform:"Zenodo", score:null, cat:"Healthcare & Wellness", src:"PDF-2", summary:"First to integrate evidence-based healing research with spiritual awakening outcomes in mantra/sloka practice — bridges the science-spirituality divide with empirical rigor."},
+  {id:185, title:"Constructive Rhetoric in Sacred Texts: A Guide to Empower Faith and Identity", doi:"10.5281/ZENODO.14031583", platform:"Zenodo", score:null, cat:"Rhetoric & Communication", src:"PDF-2", summary:"First to systematically identify and categorize 'constructive rhetoric' within sacred texts — novel in treating religious rhetoric as an empowerment rather than manipulation tool."},
+  {id:186, title:"Civic Reflexivity Engines: The World's First Framework for Democratic AI Governance", doi:null, platform:"—", score:null, cat:"AI & Technology", src:"PDF-2", summary:"World's first framework for democratic AI governance through 'Civic Reflexivity Engines' — systems that enable continuous democratic self-correction in AI decision-making."},
+  {id:187, title:"Quantum Karma Weaver: Merging Ancient Karma Philosophy with Quantum Computational Ethics and Vedantic Decision-Science", doi:null, platform:"—", score:null, cat:"AI & Technology", src:"PDF-2", summary:"World-first framework merging Karma philosophy with quantum computational ethics and Vedantic decision-science — a tri-disciplinary convergence unprecedented in AI ethics literature."},
+  {id:188, title:"Sattvic AI: A Non-Western Approach to Ethical AI Based on the Bhagavad Gita's Philosophical Structure", doi:null, platform:"—", score:null, cat:"AI & Technology", src:"PDF-2", summary:"Pioneers 'Sattvic AI' — first to derive a complete AI ethics framework from the Bhagavad Gita's three-gunas philosophy, offering a non-Western alternative to consequentialist and deontological AI ethics."},
+  {id:189, title:"National Outcomes Marketplace: India's First Outcome-Based Governance Platform — Citizens Pay Only for Results", doi:null, platform:"—", score:null, cat:"Governance & Policy", src:"PDF-2", summary:"India's first outcome-based governance platform concept — novel in structuring citizen-government transactions so payment is contingent on verified results, not promises."},
+  {id:190, title:"Nano Banana Protocol: The World's First Zero-Cost Patent Democracy Protocol for Rural and Student Inventors", doi:null, platform:"—", score:null, cat:"Education & Knowledge", src:"PDF-2", summary:"World's first zero-cost 'patent democracy' protocol enabling rural and student inventors to establish legally recognized Prior Art at no cost — democratizes IP protection for the poorest innovators."},
+];
+
+// Fix: 189 total, but we have 190 entries. Let me recount — actually the original count was 158 + ~31 new = ~189. The numbering goes to 190 but article #29 from PDF-1 (Sanatana Samyata) overlaps conceptually with the PDF-2 entry. Since I kept #29 and didn't add a duplicate PDF-2 entry for Sanatana Samyata, we have 189 unique entries numbered 1-190 with one number gap, but the array has 189 items. Let me just use the array length.
+
+// === CATEGORY DEFINITIONS ===
+const categories = [
+  { name: "All", icon: "fas fa-layer-group" },
+  { name: "Governance & Policy", icon: "fas fa-landmark" },
+  { name: "AI & Technology", icon: "fas fa-microchip" },
+  { name: "Geopolitics & Security", icon: "fas fa-shield-halved" },
+  { name: "Economics & Employment", icon: "fas fa-chart-line" },
+  { name: "Rhetoric & Communication", icon: "fas fa-comments" },
+  { name: "Philosophy & Ethics", icon: "fas fa-yin-yang" },
+  { name: "Education & Knowledge", icon: "fas fa-graduation-cap" },
+  { name: "Cultural Heritage", icon: "fas fa-monument" },
+  { name: "Healthcare & Wellness", icon: "fas fa-heart-pulse" },
+  { name: "Environment & Sustainability", icon: "fas fa-leaf" },
+  { name: "Law & Justice", icon: "fas fa-scale-balanced" },
+];
+
+// === STATE ===
+let activeCategory = "All";
+let searchQuery = "";
+let sortAsc = true;
+
+// === DOM REFS ===
+const container = document.getElementById("articlesContainer");
+const searchInput = document.getElementById("searchInput");
+const filterChips = document.getElementById("filterChips");
+const resultsCount = document.getElementById("resultsCount");
+const sortBtn = document.getElementById("sortBtn");
+const backToTop = document.getElementById("backToTop");
+
+// === CATEGORY COUNTS ===
+function getCategoryCounts() {
+  const counts = { All: articles.length };
+  categories.forEach(c => { if (c.name !== "All") counts[c.name] = 0; });
+  articles.forEach(a => { if (counts[a.cat] !== undefined) counts[a.cat]++; });
+  return counts;
+}
+
+// === RENDER CHIPS ===
+function renderChips() {
+  const counts = getCategoryCounts();
+  filterChips.innerHTML = categories.map(c =>
+    `<button class="chip${activeCategory === c.name ? ' active' : ''}" data-cat="${c.name}" aria-pressed="${activeCategory === c.name}">
+      <i class="${c.icon}" style="margin-right:4px;font-size:11px"></i>${c.name}<span class="chip-count">(${counts[c.name] || 0})</span>
+    </button>`
+  ).join("");
+  filterChips.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      activeCategory = chip.dataset.cat;
+      renderChips();
+      renderArticles();
+    });
+  });
+}
+
+// === FILTER & SORT ===
+function getFilteredArticles() {
+  let filtered = articles.filter(a => {
+    const catMatch = activeCategory === "All" || a.cat === activeCategory;
+    const q = searchQuery.toLowerCase();
+    const searchMatch = !q ||
+      a.title.toLowerCase().includes(q) ||
+      a.summary.toLowerCase().includes(q) ||
+      a.cat.toLowerCase().includes(q) ||
+      (a.doi && a.doi.toLowerCase().includes(q)) ||
+      (a.platform && a.platform.toLowerCase().includes(q));
+    return catMatch && searchMatch;
+  });
+  if (!sortAsc) filtered = [...filtered].reverse();
+  return filtered;
+}
+
+// === RENDER ARTICLES ===
+function renderArticles() {
+  const filtered = getFilteredArticles();
+  resultsCount.textContent = `Showing ${filtered.length} of ${articles.length} articles`;
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-telescope"></i><p>No articles match your search. Try different keywords or clear the filter.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map((a, i) => {
+    const scoreClass = a.score === "100%" ? "perfect" : (a.score && a.score !== "Unknown (High)" ? "high" : "unknown");
+    const scoreText = a.score || "—";
+    const isWorldFirst = a.score === "100%";
+    const doiHtml = a.doi && a.doi !== "See DeSci Nodes"
+      ? `<a href="https://doi.org/${a.doi}" target="_blank" rel="noopener" class="doi-link">${a.doi}</a>`
+      : (a.doi === "See DeSci Nodes" ? `<span class="doi-link" style="cursor:default">Available on DeSci Nodes</span>` : ``);
+
+    return `<article class="article-card" style="animation-delay:${Math.min(i * 0.03, 0.6)}s" role="article">
+      <span class="article-num">${String(a.id).padStart(3, '0')}</span>
+      <div class="article-body">
+        <h3 class="article-title"><a href="${a.doi && a.doi !== 'See DeSci Nodes' ? 'https://doi.org/' + a.doi : '#'}" target="_blank" rel="noopener">${a.title}</a></h3>
+        <p class="article-summary">${a.summary}</p>
+        <div class="article-meta">
+          <span class="tag tag-category"><i class="fas fa-tag" style="margin-right:3px;font-size:9px"></i>${a.cat}</span>
+          <span class="tag tag-platform">${a.platform}</span>
+          <span class="tag tag-score ${scoreClass}">${scoreText === "—" ? "Unscored" : scoreText}</span>
+          ${doiHtml}
+        </div>
+      </div>
+      <div class="article-right">
+        ${isWorldFirst ? '<span class="world-first"><i class="fas fa-star"></i> World-First</span>' : ''}
+        <span class="source-badge">${a.src}</span>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+// === EVENT LISTENERS ===
+searchInput.addEventListener("input", (e) => {
+  searchQuery = e.target.value.trim();
+  renderArticles();
+});
+
+sortBtn.addEventListener("click", () => {
+  sortAsc = !sortAsc;
+  sortBtn.innerHTML = `<i class="fas fa-arrow-${sortAsc ? 'down' : 'up'}-short-wide"></i> Sorted by Number ${sortAsc ? '(Asc)' : '(Desc)'}`;
+  renderArticles();
+});
+
+window.addEventListener("scroll", () => {
+  backToTop.classList.toggle("visible", window.scrollY > 600);
+}, { passive: true });
+
+backToTop.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+// Keyboard shortcut for search
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if (e.key === "Escape") {
+    searchInput.blur();
+    searchInput.value = "";
+    searchQuery = "";
+    renderArticles();
+  }
+});
+
+// === INIT ===
+renderChips();
+renderArticles();
+
+// Update total stat to actual count
+document.getElementById("stat-total").textContent = articles.length;
+</script>
+</body>
+</html>
