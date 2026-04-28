@@ -1,0 +1,13 @@
+# Robots.txt for Master-Novelty-Index-Dharma-AI-Governance
+# Author: Kallol Chakrabarti (Helix Originator)
+
+User-agent: *
+Allow: /
+Allow: /index.html
+
+# Prevent crawling of internal or draft folders if added later
+Disallow: /meta/
+Disallow: /drafts/
+
+# Link to the sitemap for better indexing
+Sitemap: https://helixoriginator.github.io/Master-Novelty-Index-Dharma-AI-Governance/sitemap.xml
